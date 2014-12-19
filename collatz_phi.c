@@ -29,19 +29,18 @@ void checkNum(to_ret (* restrict retlist))
                 inout(retlist:length(bigSize))
   {
     bigInt i;
+    int count;
+
 #pragma omp parallel for shared(retlist) private(i)
     for (i = 0; i < bigSize; ++i){
         bigInt next = retlist[i].num = i + 1;
-        int count = 0;
 
-        do{
-            count++;
-
+        for(count = 0; next >= retlist[i].num; count++){
             if (next%2 == 0)
                 next/=2;
             else
                 next=3*next+1;
-        }while(next > retlist[i].num);
+        }
 
         retlist[i].to_batch.numSteps = count;
         retlist[i].to_batch.stopPoint = next;
@@ -84,7 +83,7 @@ int main()
         fprintf(f,"%llu", (unsigned long long) results[j].stopPoint);
 
     /************************************************************************
-     *  Only functional line:                                               *
+     *  Only line needed for final version:                                 *
      ************************************************************************/
         results[j].numSteps += results[results[j].stopPoint-1].numSteps;
 
@@ -96,4 +95,6 @@ int main()
   free(retlist); free(results);
   return 0;
 }
+
+
 
