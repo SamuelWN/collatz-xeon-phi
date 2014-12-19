@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
-#include <string.h>
 
-typedef __uint64_t bigInt;
+typedef __uint128_t bigInt; // Max: 340282366920938463463374607431768211455
+typedef __uint64_t bigInt; //  Max: 18446744073709551615
 
-/// bigSize = size_of(bigInt)
-#define bigSize     100000000 //340282366920938463463374607431768211455
+// What value to check up to (starting at 1):
+#define bigSize     100000000
 
 typedef struct {
     int numSteps;
@@ -28,18 +28,18 @@ void checkNum(to_ret (* restrict retlist))
 #pragma offload target(mic:MIC_DEV) \
                 inout(retlist:length(bigSize))
   {
-    bigInt i;
+    bigInt i, next ;
     int count;
 
 #pragma omp parallel for shared(retlist) private(i)
     for (i = 0; i < bigSize; ++i){
-        bigInt next = retlist[i].num = i + 1;
+        next = retlist[i].num = i + 1;
 
         for(count = 0; next >= retlist[i].num; count++){
-            if (next%2 == 0)
-                next/=2;
+            if (next%2 == 1)
+                next=(3*next+1) / 2;
             else
-                next=3*next+1;
+                next/=2;
         }
 
         retlist[i].to_batch.numSteps = count;
@@ -67,7 +67,7 @@ int main()
 
     end = omp_get_wtime();
     end -= start;
-    printf("Runtime = %d seconds\n", end);
+    printf("Runtime = %f seconds\n", end);
 
     for(j = 0; j < bigSize; j++){
         fprintf(f, "num: ");
@@ -95,6 +95,3 @@ int main()
   free(retlist); free(results);
   return 0;
 }
-
-
-
