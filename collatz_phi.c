@@ -38,8 +38,6 @@ int main () {
 //    to_ret (* restrict retlist) = malloc(sizeof(to_ret)*bigSize);
 //    batcher (* restrict results) = malloc(sizeof(batcher)*bigSize);
 
-//    to_ret retlist[bigSize]; ///Stores values as [num][#steps to smaller val][smaller val]
-//    batcher results[bigSize]; ///Stores values as [#steps to smaller val][smaller val] & is sorted by num
     FILE *f = fopen(csvname, "w");
     FILE *t = fopen(txtname, "w");
 
@@ -48,8 +46,6 @@ int main () {
     
     int count;
     bigInt next;
-    ///Calls checkNum for bigInt values
-//    #pragma offload target(mic:0) inout(retlist:length(sizeof(to_ret))) shared(retlist) private(i, count, next)
     #pragma offload target(mic:0) inout(results) private(i, count, next)
     {
         #pragma omp parallel for
@@ -77,6 +73,7 @@ int main () {
         results[retlist[i].num - 1] = retlist[i].to_batch;
     }
   }
+
     end = omp_get_wtime();
     fprintf(t, "Number of threads: %i\n", omp_get_max_threads());
     fprintf(t, "Start time = %f seconds\n", start);
@@ -86,33 +83,14 @@ int main () {
     fprintf(f,"num,stopPoint,numSteps\n");
 
     /**
-     * Process data and display results
-     * (primarily for testing, can remove all but noted line for final version)
+     * Process data and write out results
      */
     for(j = 0; j < bigSize; j++){
-            /*fprintf(f, "num: ");
-            fprintf(f,"%llu",(unsigned long long) j+1);
+        results[j].numSteps += results[results[j].stopPoint-1].numSteps;
 
-            fprintf(f, "\nresult[");
-            fprintf(f,"%llu", (unsigned long long) j);
-            fprintf(f, "].numSteps = %i\n", results[j].numSteps);
-
-            fprintf(f, "result[");
-            fprintf(f,"%llu", (unsigned long long) j);
-            fprintf(f, "].stopPoint = ");
-            fprintf(f,"%llu", (unsigned long long) results[j].stopPoint);
-*/
         fprintf(f,"%llu,",(unsigned long long) j+1);
         fprintf(f, "%llu,", (unsigned long long) results[j].stopPoint);
-        /************************************************************************
-         *  Only line needed for final version:                                 *
-         ************************************************************************/
-            results[j].numSteps += results[results[j].stopPoint-1].numSteps;
         fprintf(f, "%i\n", results[j].numSteps);
-
-        /*    fprintf(f, "\nresults[");
-            fprintf(f,"%llu", (unsigned long long) j);
-            fprintf(f, "].numSteps += <stopPoint> = %i\n\n", results[j].numSteps);*/
     }
 
     return(0);
