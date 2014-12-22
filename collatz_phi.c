@@ -46,7 +46,7 @@ int main () {
     retlist[0].num = 1; retlist[0].to_batch.numSteps = 0; retlist[0].to_batch.stopPoint = 1;
     start = omp_get_wtime();
     
-    #pragma offload target(mic:0) inout(results)
+    #pragma offload target(mic:0) out(results)
     {
         int count;
         bigInt i, next;
