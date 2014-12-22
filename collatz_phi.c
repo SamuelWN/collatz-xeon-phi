@@ -73,7 +73,7 @@ int main () {
     ///Organizes data into a sorted array
     #pragma omp parallel for
     for (i = 0; i < bigSize; i++){
-        results[retlist[i].num - 1] = retlist[i].to_batch;
+        results[i] = retlist[i].to_batch;
     }
   }
 
