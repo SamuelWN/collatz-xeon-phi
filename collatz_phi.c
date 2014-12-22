@@ -16,9 +16,9 @@
 typedef unsigned long long bigInt;
 
 /// Number to test up to (starting from 1)
-#define bigSize     100000000 //340282366920938463463374607431768211455
+#define bigSize     1000000000 //340282366920938463463374607431768211455
 
-#define csvname     "results_100M.csv"
+#define csvname     "results_1B.csv"
 #define txtname     "computation-time_100M.txt"
 
 
@@ -46,8 +46,7 @@ int main () {
     retlist[0].num = 1; retlist[0].to_batch.numSteps = 0; retlist[0].to_batch.stopPoint = 1;
     start = omp_get_wtime();
     
-
-    #pragma offload target(mic:0) inout(results) private(i, count, next)
+    #pragma offload target(mic:0) inout(results)
     {
         int count;
         bigInt i, next;
@@ -99,5 +98,3 @@ int main () {
 
     return(0);
 }
-
-
